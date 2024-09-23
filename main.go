@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/csv"
 	"fmt"
 	"github.com/76creates/stickers/flexbox"
 	"github.com/charmbracelet/bubbletea"
@@ -66,11 +67,26 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m *Model) InitializeData(width, height int) {
 	m.FlexBoxComponent.Init(width, height)
-	movies := []media.Media{
-		{Name: "Scream", Poster: "./data/scream/poster.jpg", Trailer: "./data/scream/trailer.mp4"},
-		{Name: "The Craft", Poster: "./data/craft/poster.jpg", Trailer: "./data/craft/trailer.mp4"},
-		{Name: "Dracula", Poster: "./data/dracula/poster.jpg", Trailer: "./data/dracula/trailer.mp4"},
-		{Name: "Silence of The Lambs", Poster: "./data/sotl/poster.jpg", Trailer: "./data/sotl/trailer.mp4"},
+	movies := []media.Media{}
+	file, err := os.Open("./data/data.csv")
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+	reader := csv.NewReader(file)
+	records, err := reader.ReadAll()
+	if err != nil {
+		fmt.Println("Error reading records")
+	}
+
+	// Loop to iterate through
+	// and print each of the string slice
+	for _, eachrecord := range records {
+		movies = append(movies, media.Media{
+			Name:    eachrecord[0],
+			Poster:  eachrecord[1],
+			Trailer: eachrecord[2],
+		})
 	}
 	m.FlexBoxComponent.Movies = movies
 	m.FlexBoxComponent.Selected = 1
