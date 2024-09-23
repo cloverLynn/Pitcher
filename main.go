@@ -99,6 +99,7 @@ func (m *Model) InitializeData(width, height int) {
 		),
 	}
 	m.FlexBoxComponent.FlexBox.AddRows(rows)
+	file.Close()
 }
 
 func (m *Model) View() string {
@@ -121,10 +122,10 @@ func NewForm() Form {
 				huh.NewInput().
 					Key("name").
 					Title("Media Name"),
-				huh.NewFilePicker().CurrentDirectory(path).
+				huh.NewFilePicker().AllowedTypes([]string{".jpg"}).CurrentDirectory(path).
 					Title("Poster").
 					Key("poster"),
-				huh.NewFilePicker().CurrentDirectory(path).
+				huh.NewFilePicker().AllowedTypes([]string{".mp4"}).CurrentDirectory(path).
 					Title("Trailer").
 					Key("trailer"),
 			)),
@@ -153,16 +154,37 @@ func (t Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if f, ok := form.(*huh.Form); ok {
 		t.form = f
 	}
+	if t.form.State == huh.StateCompleted {
+		// Quit when the form is done.
+		name := t.form.GetString("name")
+		poster := t.form.GetString("poster")
+		trailer := t.form.GetString("trailer")
+		record := "\n" + name + "," + poster + "," + trailer + "\n"
+		file, err := os.OpenFile("./data/data.csv", os.O_APPEND|os.O_WRONLY, 0644)
+		if err != nil {
+			panic(err)
+		}
+		defer func(file *os.File) {
+			err := file.Close()
+			if err != nil {
+
+			}
+		}(file)
+		_, err = file.WriteString(record)
+
+		err = file.Close()
+		if err != nil {
+			return nil, nil
+		}
+
+	}
 
 	return t, cmd
 }
 
 func (t Form) View() string {
 	if t.form.State == huh.StateCompleted {
-		name := t.form.GetString("name")
-		poster := t.form.GetString("poster")
-		trailer := t.form.GetString("trailer")
-		return fmt.Sprintf("You selected: %s, Lvl. %s %s", name, poster, trailer)
+		return fmt.Sprintf("Movie has been saved")
 	}
 	return t.form.View()
 }
