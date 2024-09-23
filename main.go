@@ -9,7 +9,9 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	components "main/Components"
 	"main/media"
+	"main/utils"
 	"os"
+	"os/exec"
 )
 
 type status int
@@ -155,15 +157,25 @@ func (t Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		t.form = f
 	}
 	if t.form.State == huh.StateCompleted {
-		// Quit when the form is done.
 		name := t.form.GetString("name")
 		poster := t.form.GetString("poster")
 		trailer := t.form.GetString("trailer")
-		record := "\n" + name + "," + poster + "," + trailer + "\n"
+		newDir := "./data/" + utils.ScrubString(name)
+		err := os.Mkdir(newDir, 0755)
+		command := exec.Command("cp", poster, newDir+"/poster.jpg")
+		poster = newDir + "/poster.jpg"
+		command.Run()
+		command = exec.Command("cp", trailer, newDir+"/trailer.mp4")
+		trailer = newDir + "/trailer.mp4"
+		command.Run()
+		if err != nil {
+			panic(err)
+		}
 		file, err := os.OpenFile("./data/data.csv", os.O_APPEND|os.O_WRONLY, 0644)
 		if err != nil {
 			panic(err)
 		}
+		record := "\n" + name + "," + poster + "," + trailer + "\n"
 		defer func(file *os.File) {
 			err := file.Close()
 			if err != nil {

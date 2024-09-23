@@ -1,6 +1,11 @@
 package utils
 
-import "main/media"
+import (
+	tea "github.com/charmbracelet/bubbletea"
+	"main/media"
+	"strings"
+	"time"
+)
 
 // IncrementArray handles selection of previous, current, and next items
 func IncrementArray(arr []media.Media, selected int) []int {
@@ -22,4 +27,18 @@ func IncrementArray(arr []media.Media, selected int) []int {
 	}
 
 	return output
+}
+
+type ClearErrorMsg struct{}
+
+func ClearErrorAfter(t time.Duration) tea.Cmd {
+	return tea.Tick(t, func(_ time.Time) tea.Msg {
+		return ClearErrorMsg{}
+	})
+}
+
+func ScrubString(s string) string {
+	s = strings.Replace(s, " ", "", -1)
+	s = strings.ToLower(s)
+	return s
 }
